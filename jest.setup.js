@@ -1,3 +1,6 @@
+/* eslint-disable no-undef */
+/* eslint-env node */
+
 const { TextEncoder, TextDecoder } = require('util')
 
 global.TextEncoder = TextEncoder

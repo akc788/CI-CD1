@@ -1,6 +1,8 @@
 module.exports = {
   "env": {
     "browser": true,
+    "node": true,
+    "jest": true,
     "es6": true,
     "jest/globals": true
   },
@@ -45,5 +47,14 @@ module.exports = {
     ],
     "no-console": "error",
     "react/prop-types": 0
-  }
+    },
+
+  "overrides": [
+    {
+      "files": ["jest.setup.js"],
+      "env": {
+        "node": true
+      }
+    }
+  ]
 }
