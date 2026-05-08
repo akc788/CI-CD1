@@ -31,5 +31,8 @@ jobs:
         run: npm run build
 
       - name: Trigger Render deployment
-        if: github.ref == 'refs/heads/main'
+        if: ${{ github.event_name == 'push' }}
         run: curl ${{ secrets.RENDER_DEPLOY_HOOK }}
+        
+
+        
