@@ -48,3 +48,33 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEFAULT_BUMP: patch
+
+    notify:
+    needs: [simple_deployment_pipeline, tag_release]
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Success notification
+        if: ${{ needs.simple_deployment_pipeline.result == 'success' && needs.tag_release.result != 'failure' }}
+        uses: Ilshidur/action-discord@master
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_USERNAME: GitHub Actions
+          DISCORD_MESSAGE: |
+            ✅ Deployment successful!
+            Repository: ${{ github.repository }}
+            Commit: ${{ github.event.head_commit.message }}
+
+      - name: Failure notification
+        if: ${{ needs.simple_deployment_pipeline.result == 'failure' || needs.tag_release.result == 'failure' }}
+        uses: Ilshidur/action-discord@master
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_USERNAME: GitHub Actions
+          DISCORD_MESSAGE: |
+            ❌ Build failed!
+            Repository: ${{ github.repository }}
+            Commit: ${{ github.event.head_commit.message }}
+            Author: ${{ github.actor }}
+            Workflow: ${{ github.workflow }}
