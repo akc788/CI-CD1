@@ -49,7 +49,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEFAULT_BUMP: patch
 
-    notify:
+  notify:
     needs: [simple_deployment_pipeline, tag_release]
     if: always()
     runs-on: ubuntu-latest
