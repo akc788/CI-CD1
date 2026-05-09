@@ -9,7 +9,7 @@ on:
     types: [opened, synchronize]
 
 jobs:
-  simple_deployment_pipeline:
+  lint_and_test:
     runs-on: ubuntu-latest
 
     steps:
@@ -28,15 +28,34 @@ jobs:
       - name: Run tests
         run: npm test
 
+  build:
+    needs: [lint_and_test]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
       - name: Build project
         run: npm run build
 
+  deploy:
+    needs: [build]
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message, ' '), '#skip') }}
+
+    steps:
       - name: Trigger Render deployment
-        if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message, ' '), '#skip') }}
         run: curl ${{ secrets.RENDER_DEPLOY_HOOK }}
 
   tag_release:
-    needs: [simple_deployment_pipeline]
+    needs: [deploy]
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message, ' '), '#skip') }}
 
@@ -50,13 +69,13 @@ jobs:
           DEFAULT_BUMP: patch
 
   notify:
-    needs: [simple_deployment_pipeline, tag_release]
+    needs: [lint_and_test, build, deploy, tag_release]
     if: always()
     runs-on: ubuntu-latest
 
     steps:
       - name: Success notification
-        if: ${{ needs.simple_deployment_pipeline.result == 'success' && needs.tag_release.result != 'failure' }}
+        if: ${{ needs.lint_and_test.result == 'success' && needs.build.result == 'success' }}
         uses: Ilshidur/action-discord@master
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
@@ -67,7 +86,7 @@ jobs:
             Commit: ${{ github.event.head_commit.message }}
 
       - name: Failure notification
-        if: ${{ needs.simple_deployment_pipeline.result == 'failure' || needs.tag_release.result == 'failure' }}
+        if: ${{ needs.lint_and_test.result == 'failure' || needs.build.result == 'failure' || needs.deploy.result == 'failure' || needs.tag_release.result == 'failure' }}
         uses: Ilshidur/action-discord@master
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
