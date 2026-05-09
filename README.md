@@ -24,3 +24,10 @@ version tagging test
 
 https://github.com/akc788/phonebook-ci-cd
 
+## Deployed Pokedex
+
+https://ci-cd1-ofhn.onrender.com/
+
+## Exercise 21 Repository
+
+https://github.com/akc788/phonebook-ci-cd
